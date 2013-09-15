@@ -10,6 +10,7 @@ __copyright__   = "Copyright 2013, Released under the GPLv3 License - more infor
 import sys
 import tweepy
 import argparse
+import subprocess
 
 #Twitter OAuth keys - For more info visit https://dev.twitter.com/docs/auth/oauth/faq
 consumer_key=""
@@ -24,6 +25,7 @@ hashtag = '#piframe'
 parser = argparse.ArgumentParser()
 parser.add_argument('-i','--images', help="Returns image URL's for tweets", action='store_true')
 parser.add_argument('-t','--text', help='Returns tweet body text', action='store_true')
+#parser.add_argument('-o','--outputall', help='Returns image and text formatted for FEH', action='store_true')
 args = parser.parse_args()
 
 
@@ -38,11 +40,11 @@ def main():
 	if args.images:
 		print retrieveTweetImages(api,hashtag)
 
-	if args.text:
+	elif args.text:
 		print retrieveTweetBody(api,hashtag)
-
-
-
+	
+#	elif args.outputall:
+#		print retrieveAll(api,hashtag)
 
 
 # Function to retrieve Tweet Images based on given hashtag. Expects two arguments, a currently open Twitter session and a hashtag string.
@@ -53,25 +55,43 @@ def retrieveTweetImages(apiSession,searchtag):
 		#print tweet.text
 		try:
 			for image in  tweet.entities['media']:
-				imageURL +=  str(image['media_url']) + ','
+				imageURL +=  str(image['media_url']) + ' '
 		except KeyError:
 			pass
 
 
-	#return list of retrieved media URL's. Strip last comma from string.
-	return imageURL[:-1]
+	#return list of retrieved media URL's.
+	return imageURL
 
 
 
-
+# Function to retrieve Tweet text based on given hashtag.
 def retrieveTweetBody(apiSession,searchtag):
 	tweets = ''
 	for tweet in tweepy.Cursor(apiSession.search,q=searchtag,count=5,include_entities=True).items(5):
 		tweets += str(tweet.created_at) + '|' + str(tweet.text) + ','
 
-	return tweets[:-1]
+	return tweets
 
 
+# Code below commented out, will possibly be used in future.
+#def retrieveAll(apiSession,searchtag):
+#	output = ''
+#	for tweet in tweepy.Cursor(apiSession.search,q=searchtag,count=1,include_entities=True).items(1):
+#       	#print tweet.text
+#                try:
+#                        for image in  tweet.entities['media']:
+#                                output  += " --info '" + str(tweet.text) + " " + str(image['media_url']) + "' ,"
+#                except KeyError:
+#                        pass
+
+	#return list of retrieved media URL's. Strip last comma from string.
+#        return output[:-1]
+
+
+# Run Slideshow - Invokes FEH with the correct command line aruments
+#def runSlideshow(delay,images):
+#	feh = subprocess.Popen(['/usr/bin/feh', '--quiet --full-screen --slideshow-delay', delay, images] shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 #Invoke main function
 if __name__ == "__main__":
